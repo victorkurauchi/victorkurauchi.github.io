@@ -1,0 +1,465 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="Victor Kurauchi">
+    <title>Aproveitando cache com varnish, nginx e nodejs - Victor Kurauchi</title>
+    <meta name="author" content="Victor Kurauchi">
+    
+        <meta name="keywords" content="web,javascript,mobile,development,desenvolvimento,desenvolvedor,js,webdeveloper,nodejs,node,">
+    
+    
+    
+    <meta name="description" content="Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa. De acordo com nosso analytics, tivemos em torno de 10">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Aproveitando cache com varnish, nginx e nodejs">
+<meta property="og:url" content="http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/index.html">
+<meta property="og:site_name" content="Victor Kurauchi">
+<meta property="og:description" content="Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa. De acordo com nosso analytics, tivemos em torno de 10">
+<meta property="og:updated_time" content="2016-05-24T14:18:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Aproveitando cache com varnish, nginx e nodejs">
+<meta name="twitter:description" content="Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa. De acordo com nosso analytics, tivemos em torno de 10">
+<meta name="twitter:creator" content="@victorkurauchi">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://pt.gravatar.com/userimage/38337555/d59f1aafc73036b69aac7555731ef5a4.jpg?size=200"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-27vrduj1jopliavvnzi7ibndpmbvg7lzo4a2uswrsi4m5vwauf2qi8s1v3or.min.css">
+    <!--STYLES END-->
+    
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="3">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">Victor Kurauchi</a>
+    </h1>
+    
+        
+            <a  class="header-right-picture "
+                href="#about">
+        
+        
+            <img class="header-picture" src="https://pt.gravatar.com/userimage/38337555/d59f1aafc73036b69aac7555731ef5a4.jpg?size=200"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="3">
+    
+        <div class="sidebar-profile">
+            <a href="/#about">
+                    <img class="sidebar-profile-picture" src="https://pt.gravatar.com/userimage/38337555/d59f1aafc73036b69aac7555731ef5a4.jpg?size=200"/>
+            </a>
+            <span class="sidebar-profile-name">Victor Kurauchi</span>
+        </div>
+    
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-tags"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+                    <span class="sidebar-button-desc">Tags</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-archives"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+                    <span class="sidebar-button-desc">Archives</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="#about"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+                    <span class="sidebar-button-desc">About</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://res.cloudinary.com/dzrbqcbpr/image/upload/v1463703669/Victor_Resume_auklls.pdf" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-file-code-o"></i>
+                    <span class="sidebar-button-desc">Resume</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/victorkurauchi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/victorkurauchi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/victorkurauchi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://br.linkedin.com/in/victor-moriyuki-kurauchi-86b04229" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">LinkedIn</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="3"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            Aproveitando cache com varnish, nginx e nodejs
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Mon May 23 2016 11:06:23 GMT-0300">
+	
+		    May 23, 2016
+    	
+    </time>
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa.<br><strong><em> De acordo com nosso analytics, tivemos em torno de 10k de acesso no dia em que precisávamos em uma t2.large e a CPU ficou em 6% … não fez muito estrago </em></strong></p>
+<p>A maioria de vocês já deve conhecer o <a href="http://nginx.org/en/" target="_blank" rel="external">Nginx</a>, que nos ajuda bastante como http proxy server, mas hoje vou falar mais sobre o <a href="https://www.varnish-cache.org/" target="_blank" rel="external">Varnish</a>, que é um acelerador de aplicações web, segundo o próprio descritivo deles, que eu diria ser um cache pro http server.</p>
+<p><strong>Oi?</strong><br>Oi, tudo bem? Então. Brevemente explicando, o Varnish vai armazenar o conteúdo das requisições HTTP em memória, e de acordo com a configuração que você fizer, quem acessar a mesma url durante um período de tempo vai receber a resposta que está em cache na memória, ou seja, sua aplicação (nodejs) não vai ser requisitada por algum tempo. </p>
+<a id="more"></a>
+<p><strong><em>Importante:</em></strong> A equipe tem que chegar a uma definição pra ver se esta abordagem é válida. No nosso contexto, a maioria do conteúdo entregue pelo nosso server era sempre o mesmo, listagem de produtos, infos detalhes etc. </p>
+<p>A nossa ideia inicial era deixar a arquitetura desta maneira: </p>
+<p><code>Aws Load Balancer -&gt; (Scaling Horizontal) EC2 t2.large -&gt; nginx -&gt; varnish -&gt; (4 processos) nodejs</code></p>
+<p>Mas quando nos falaram que não era algo tão brutal de users, e após realizarmos alguns testes de conexões (<a href="https://www.npmjs.com/package/loadtest" target="_blank" rel="external">com node package loadtest</a>) , acabamos ficando com a seguinte arquitetura:</p>
+<p><code>EC2 t2.large -&gt; nginx -&gt; varnish -&gt; (1 processo) nodejs</code></p>
+<p>E não tivemos problemas :) </p>
+<p><strong> Configurando Varnish e Nginx no Ubuntu </strong></p>
+<p><em>Detalhe: estou levando em conta que você já tem o ambiente com nginx rodando e servindo a aplicação em Node, ok?</em></p>
+<p><strong><em>Instalando Varnish</em></strong></p>
+<p><code>apt-get install apt-transport-https</code><br><code>curl https://repo.varnish-cache.org/GPG-key.txt | apt-key add -</code><br><code>echo &quot;deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1&quot; \</code><br><code>&gt;&gt; /etc/apt/sources.list.d/varnish-cache.list</code><br><code>apt-get update</code><br><code>apt-get install varnish</code></p>
+<p><strong><em>Deixando o Varnish na porta 80</em></strong></p>
+<p>No seu editor de preferência, abra o arquivo /etc/default/varnish, ele terá um bloco com a porta para testes:</p>
+<p><code>DAEMON_OPTS=&quot;-a :6081 \</code><br>             <code>-T localhost:6082 \</code><br>             <code>-f /etc/varnish/default.vcl \</code><br>             <code>-S /etc/varnish/secret \</code><br>             <code>-s malloc,256m&quot;</code></p>
+<p>Vamos mudar para:             </p>
+<p><code>DAEMON_OPTS=&quot;-a :80 \</code><br>             <code>-T localhost:6082 \</code><br>             <code>-f /etc/varnish/default.vcl \</code><br>             <code>-S /etc/varnish/secret \</code><br>             <code>-s malloc,256m&quot;</code></p>
+<p>Ok, agora precisamos direcionar o request pro nosso Nginx que está a aplicação em node na porta:3000<br>Vamos abrir o arquivo /etc/varnish/default.vcl, e vou colocar aqui apenas os blocos que precisei alterar, comentando o porque.</p>
+<p>.host e .port foram alterados para direcionar pro nginx</p>
+<figure class="codeblock codeblock--tabbed"><figcaption><a href="https://www.varnish-cache.org/docs/4.1/tutorial/putting_varnish_on_port_80.html" target="_blank" rel="external">/etc/varnish/default.vcl</a><ul class="tabs"><li class="tab active">vim</li></ul></figcaption><div class="tabs-content"><figure class="highlight" style="display: block;"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">backend default {</span><br><span class="line">  .host = "127.0.0.1";</span><br><span class="line">  .port = "3000";</span><br><span class="line">  .connect_timeout = 10s;</span><br><span class="line">  .first_byte_timeout = 15s;</span><br><span class="line">  .between_bytes_timeout = 60s;</span><br><span class="line">  .max_connections = 800;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></div></figure>
+<p>Dependendo do seu contexto, voce precisara manualmente informar os arquivos/rotas que não quer que fiquem em cache. No nosso caso, /cms que é nosso gerenciador de conteúdo e /api/v1</p>
+<figure class="codeblock codeblock--tabbed"><figcaption><a href="https://www.varnish-cache.org/docs/4.1/tutorial/putting_varnish_on_port_80.html" target="_blank" rel="external">/etc/varnish/default.vcl</a><ul class="tabs"><li class="tab active">vim</li></ul></figcaption><div class="tabs-content"><figure class="highlight" style="display: block;"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">sub vcl_recv {</span><br><span class="line">  if (req.url ~ "^/cms/") {</span><br><span class="line">      return (pass);</span><br><span class="line">  }</span><br><span class="line">  if(req.url ~ "^/api/v1/") {</span><br><span class="line">      return (pass);</span><br><span class="line">  }</span><br><span class="line">  unset req.http.cookie;</span><br><span class="line">  # Happens before we check if we have this in cache already.</span><br><span class="line">  #</span><br><span class="line">  # Typically you clean up the request here, removing cookies you don't need,</span><br><span class="line">  # rewriting the request, etc.</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></div></figure>
+<p>E por fim, precisamos ajustar /etc/nginx/sites-enabled/default<br><figure class="codeblock codeblock--tabbed"><figcaption><a href="https://www.varnish-cache.org/docs/4.1/tutorial/putting_varnish_on_port_80.html" target="_blank" rel="external">/etc/nginx/sites-enabled/default</a><ul class="tabs"><li class="tab active">vim</li></ul></figcaption><div class="tabs-content"><figure class="highlight" style="display: block;"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">upstream node_server {</span><br><span class="line">  server 127.0.0.1:80;</span><br><span class="line">}</span><br><span class="line">server {</span><br><span class="line">  # commented line below because we are using varnish as main cache,</span><br><span class="line">  # so port 80 is being used by varnish.</span><br><span class="line">  # listen 80;</span><br><span class="line"></span><br><span class="line">  location / {</span><br><span class="line">      proxy_pass http://node_server;</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></div></figure></p>
+<p>Bom, agora você pode testar da seguinte maneira: </p>
+<p><code>sudo service varnish restart</code><br><code>sudo service nginx restart</code></p>
+<p>Confira se subiu tudo ok, e então você pode fazer uma request para o seu site e acompanhar os logs de requisição, utilizando<br><code>tail -f /path/to/logfile</code></p>
+<p>A primeira vez que você fizer o acesso, verá os registros de log. Nas próximas requisições iguais, você não verá mais pois a request bateu primeiro no Varnish e foi entregue para o user o que estava em Cache.</p>
+<p>Tem bastante coisa pra configurar com o Varnish, questão de tempo em que ele mantém cache e tudo mais. Eu abordei aqui o mais básico dele e acredito que já pode ser bem útil. Mas por favor, vá adiante e <a href="https://www.varnish-cache.org/docs/4.1/tutorial/index.html" target="_blank" rel="external">leia mais sobre o que pode ser feito.</a></p>
+<p>See ya.</p>
+
+            
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2016/05/20/Utilizando-a-tecnica-Crazy-Eights-para-iniciarmos-um-novo-projeto/" data-tooltip="Utilizando a técnica Crazy Eights em um novo projeto">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2016 Victor Kurauchi. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="3">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2016/05/20/Utilizando-a-tecnica-Crazy-Eights-para-iniciarmos-um-novo-projeto/" data-tooltip="Utilizando a técnica Crazy Eights em um novo projeto">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="3">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://pt.gravatar.com/userimage/38337555/d59f1aafc73036b69aac7555731ef5a4.jpg?size=200"/>
+        
+            <h4 id="about-card-name">Victor Kurauchi</h4>
+        
+            <h5 id="about-card-bio"><p>Just another curious kid trying to do his best, also trying to make the world a better place :)  Learning and sharing.</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                Sao Paulo, Brazil
+            </h5>
+        
+    </div>
+</div>
+
+        
+<div id="cover" style="background-image:url('https://res.cloudinary.com/dzrbqcbpr/image/upload/v1463700262/mans-hand-is-trying-to-reach-the-sun-picjumbo-com_dpqqdv.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/scrip-tu4ziscb5jrkjxubeugdgizktyuugflfq5jvgz4agzzmwifuq01g1lmq8giw.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+</html>
