@@ -19,7 +19,7 @@
 <meta property="og:url" content="http://victorkurauchi.github.io/2016/05/23/Aproveitando-cache-com-varnish-nginx-e-nodejs/index.html">
 <meta property="og:site_name" content="Victor Kurauchi">
 <meta property="og:description" content="Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa. De acordo com nosso analytics, tivemos em torno de 10">
-<meta property="og:updated_time" content="2016-05-24T20:36:04.000Z">
+<meta property="og:updated_time" content="2016-06-06T14:52:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Aproveitando cache com varnish, nginx e nodejs">
 <meta name="twitter:description" content="Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa. De acordo com nosso analytics, tivemos em torno de 10">
@@ -228,10 +228,9 @@
     
     <div class="post-content markdown" itemprop="articleBody">
         <div class="main-content-wrap">
-            <p>Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa.<br><strong><em> De acordo com nosso analytics, tivemos em torno de 10k de acesso no dia em que precisávamos em uma t2.large e a CPU ficou em 6% … não fez muito estrago </em></strong></p>
+            <p>Devs, hoje quero compartilhar um pouco sobre um approach que escolhemos pra ter nosso server disponível para alguns milhares de usuários numa boa.<br><strong><em> De acordo com nosso analytics, tivemos em torno de 10k de acesso no dia em que precisávamos em uma t2.large e a CPU ficou em 6% … não fez muito estrago </em></strong><br><a id="more"></a></p>
 <p>A maioria de vocês já deve conhecer o <a href="http://nginx.org/en/" target="_blank" rel="external">Nginx</a>, que nos ajuda bastante como http proxy server, mas hoje vou falar mais sobre o <a href="https://www.varnish-cache.org/" target="_blank" rel="external">Varnish</a>, que é um acelerador de aplicações web, segundo o próprio descritivo deles, que eu diria ser um cache pro http server.</p>
 <p><strong>Oi?</strong><br>Oi, tudo bem? Então. Brevemente explicando, o Varnish vai armazenar o conteúdo das requisições HTTP em memória, e de acordo com a configuração que você fizer, quem acessar a mesma url durante um período de tempo vai receber a resposta que está em cache na memória, ou seja, sua aplicação (nodejs) não vai ser requisitada por algum tempo. </p>
-<a id="more"></a>
 <p><strong><em>Importante:</em></strong> A equipe tem que chegar a uma definição pra ver se esta abordagem é válida. No nosso contexto, a maioria do conteúdo entregue pelo nosso server era sempre o mesmo, listagem de produtos, infos detalhes etc. </p>
 <p>A nossa ideia inicial era deixar a arquitetura desta maneira: </p>
 <p><code>Aws Load Balancer -&gt; (Scaling Horizontal) EC2 t2.large -&gt; nginx -&gt; varnish -&gt; (4 processos) nodejs</code></p>
@@ -272,7 +271,7 @@
         <ul class="post-actions post-action-nav">
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--disabled">
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2016/06/06/Integrando-polyglot-js-e-jade-template/"  data-tooltip="Integrando polyglot.js e jade template">
                 
                     <i class="fa fa-angle-left"></i>
                     <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
@@ -343,7 +342,7 @@
         <ul class="post-actions post-action-nav">
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--disabled">
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2016/06/06/Integrando-polyglot-js-e-jade-template/"  data-tooltip="Integrando polyglot.js e jade template">
                 
                     <i class="fa fa-angle-left"></i>
                     <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
